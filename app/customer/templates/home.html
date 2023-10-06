@@ -8,7 +8,7 @@
         <input type="submit" value="로그아웃">
     </form>
     <p>{{ request.user.username }}
-    <a href="{% url 'customer:customer_address' %}">Cart</a>
+    <a href="{% url 'customer:customer_cart' %}">Cart</a>
     <a href="{% url 'customer:customer_orders' %}">Order</a>
     
 </div>

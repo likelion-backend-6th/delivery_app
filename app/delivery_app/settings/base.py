@@ -49,6 +49,7 @@ INSTALLED_APPS += [
     "customer", 
     "sajjang", 
     "delivery_crew", 
+    "stripe"
 
 
 ]

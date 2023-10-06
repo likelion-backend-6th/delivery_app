@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+    <p>#{{ order.id }}</p>
+    {% comment %} <p>{{  }}</p>
+    <p>{{  }}</p>
+    <p>{{  }}</p>
+    <p>{{  }}</p> {% endcomment %}
+
+    <form action="" method="POST">
+        {% csrf_token %}
+        <input type="submit" value="결재하기">
+    </form>
+
+
+
+{% endblock content %}

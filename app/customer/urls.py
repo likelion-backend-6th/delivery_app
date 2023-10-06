@@ -1,26 +1,6 @@
 from django.urls import path
-from .views import (
-    CustomerHomeView,
-    CustomerSearchCategoryView,
-    CustomerAddressView,
-    CustomerAddressAddView,
-    CustomerAddressDetailView,
-    CustomerAddressEditView,
-    CustomerAddressDeleteView,
-    CustomerCartView,
-    CustomerOrderView,
-    CustomerOrderCreateView,
-    CustomerStoreView,
-    CustomerStoreDetailView,
-    CustomerStoreMenuView,
-    CustomerMenuDetailView,
-    CustomerCategoryView,
-    CustomerCategoryDetailView,
-    CustomerOrderDetailView,
-    CustomerPaymentView,
-    CustomerPayCompletedView,
-)
-
+from .views import *
+from .webhook import *
 
 app_name = "customer"
 
@@ -78,10 +58,9 @@ urlpatterns = [
         CustomerOrderDetailView.as_view(),
         name="customer_order_detail",
     ),
-    path("payment/", CustomerPaymentView.as_view(), name="customer_payment"),
-    path(
-        "pay_complete/",
-        CustomerPayCompletedView.as_view(),
-        name="customer_pay_complete",
+    path("payment/<int:order_id>", CustomerPaymentView.as_view(), name="customer_payment"),
+    path("pay_complete/", CustomerPayCompletedView.as_view(), name="customer_pay_complete",
     ),
+    path("pay_cancel/", CustomerPayCancleView.as_view(), name="customer_pay_calcle"),
+    path("payment/webhook", stripe_webhook, name='stripe-webhook'), 
 ]
