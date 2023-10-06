@@ -1,8 +1,10 @@
-from django.shortcuts import render, redirect
-from django.views.generic import TemplateView
+from django.contrib.auth.models import User
+from multiprocessing import context
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cart
-from sajjang.models import Category, Stores, Order
-from django.conf import settings
+from sajjang.models import Category, Stores, Menus, Address
+from django.views.generic import TemplateView
+from django.http import JsonResponse
 import stripe
 from decimal import Decimal
 
@@ -10,61 +12,101 @@ from decimal import Decimal
 
 
 class CustomerHomeView(TemplateView):
+    template_name = "home.html"
+
     def get(self, request):
-        category_query = request.GET.get('category', None)
+        category_query = request.GET.get("category", None)
         categories = Category.objects.all()
         if category_query:
             stores = Stores.objects.filter(category_id=category_query)
         else:
             stores = Stores.objects.all()
-    
-        return render(request, template_name='home.html', context={'categories':categories, 
-                                                                    'stores':stores})
 
-    def post(self, request):
-        pass
+        return render(
+            request,
+            template_name="home.html",
+            context={"categories": categories, "stores": stores},
+        )
 
 
+# 미완성
 class CustomerSearchCategoryView(TemplateView):
-    def get(self, request, category_id):
-        pass
+    template_name = "category/category.html"
 
-    def post(self, request):
-        pass
+    def get(self, request, category_id):
+        category = Category.objects.get(id=category_id)
+        stores = Stores.objects.get(id=category_id)
 
 
 class CustomerAddressView(TemplateView):
-    def get(self, request):
-        pass
+    template_name = "address/search.html"
 
-    def post(self, request):
-        pass
+    def get(self, request):
+        addresses = Address.objects.all()
+        context = {"addresses": addresses}
+        return render(request, self.template_name, context)
 
 
 class CustomerAddressAddView(TemplateView):
-    def get(self, request):
-        pass
+    template_name = "address/add.html"
+
+    def get(self, request, category_id):
+        addresses = Address.objects.all()
+        context = {"addresses": addresses}
+        return render(request, self.template_name, context)
 
     def post(self, request):
-        pass
+        try:
+            user_id = User.object.get(id=user_id)
+            address_name = request.POST["address_name"]
+            address = request.POST["address"]
+            is_default = request.POST["is_default"]
+            new_address = Address(
+                address_name=address_name,
+                address=address,
+                is_default=is_default,
+            )
+            new_address.save()
+            return redirect("customer_address")
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
 
 class CustomerAddressDetailView(TemplateView):
+    template_name = "address/detail.html"
+
     def get(self, request, address_id):
-        pass
+        address = get_object_or_404(Address, id=address_id)
+        context = {"address": address}
+        return render(request, self.template_name, context)
 
 
 class CustomerAddressEditView(TemplateView):
+    template_name = "address/edit.html"
+
     def get(self, request, address_id):
-        pass
+        address = get_object_or_404(Address, id=address_id)
+        context = {"address": address}
+        return render(request, self.template_name, context)
 
     def post(self, request, address_id):
-        pass
+        try:
+            address = get_object_or_404(Address, id=address_id)
+            address.address_name = request.POST["address_name"]
+            address.address = request.POST["address"]
+            address.is_default = request.POST["is_default"]
+            address.save()
+            return redirect("customer_address_detail", address_id=address_id)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
 
 class CustomerAddressDeleteView(TemplateView):
     def post(self, request, address_id):
-        pass
+        delete_address = Address.objects.get(id=address_id)
+        delete_address.delete()
+
+        return redirect("customer_address")
 
 
 class CustomerCartView(TemplateView):
@@ -97,7 +139,7 @@ class CustomerOrderCreateView(TemplateView):
     def post(self, request, id):
         pass
 
-
+# /customer/store/
 class CustomerStoreView(TemplateView):
     def get(self, request):
         pass
@@ -105,39 +147,74 @@ class CustomerStoreView(TemplateView):
     def post(self, request):
         pass
 
-
+# /customer/store/<int:store_id>
 class CustomerStoreDetailView(TemplateView):
-    def get(self, request, stores_id):
-        pass
+    template_name = 'store/detail.html'
 
+    def get(self, request, store_id):
+        store = get_object_or_404(Stores, id=store_id)
+        context = {"store": store}      
+        return render(request, self.template_name, context)
 
+# /customer/store/<int:store_id>/menu/
 class CustomerStoreMenuView(TemplateView):
-    def get(self, request, stores_id):
-        pass
+    template_name = 'store/menu/list.html'
 
+    def get(self, request, store_id):
+        store = get_object_or_404(Stores, id=store_id)
+        menus = Menus.objects.filter(store_id=store_id)
+        context = {"store": store, "menus": menus}
+        return render(request, self.template_name, context)
 
+# /customer/store/<int:stores_id>/menu/{menus_id}
 class CustomerMenuDetailView(TemplateView):
-    def get(self, request, stores_id, menus_id):
-        pass
+    template_name = 'store/menu/detail.html'
 
-    def post(self, request, stores_id, menus_id):
-        pass
+    def get(self, request, store_id, menu_id):
+        menu = get_object_or_404(Menus, id=menu_id)
+        context = {"menu": menu}
+        return render(request, self.template_name, context)
 
+    def post(self, request, store_id, menu_id):
+        try:
+            quantity = request.POST.get('quantity')
+            unit_price = request.POST.get('unit_price')
+            
+            store = get_object_or_404(Stores, id=store_id)
+            menu = get_object_or_404(Menus, id=menu_id)
 
+            cart_item = Cart(
+                user_id=request.user.pk,
+                stores_id=store,
+                menus_id=menu,
+                order_id=None,
+                quantity=quantity,
+                unit_price=unit_price
+            )
+            cart_item.save()
+            return redirect("store_menu", store_id=store_id)
+        
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+# customer/category/
 class CustomerCategoryView(TemplateView):
+    template_name = "category/category.html"
+    
     def get(self, request):
-        pass
+        categories = Category.objects.all()
+        context = {"categories": categories}
+        return render(request, self.template_name, context)
 
-    def post(self, request):
-        pass
-
-
+# customer/category/<int:category_id>
 class CustomerCategoryDetailView(TemplateView):
+    template_name = "category/category.html"
+    
     def get(self, request, category_id):
-        pass
-
-    def post(self, request, category_id):
-        pass
+        category = Category.objects.filter(id=category_id)
+        stores = Stores.objects.filter(category_id=category_id)
+        context = {"category": category, "stores": stores}
+        return render(request, self.template_name, context)
 
 
 class CustomerOrderDetailView(TemplateView):

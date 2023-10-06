@@ -27,10 +27,10 @@ class Stores(models.Model):
 
 class Menus(models.Model):
     store_id = models.ForeignKey(
-        Stores, on_delete=models.CASCADE, verbose_name="store_id"
+        Stores, on_delete=models.CASCADE, verbose_name="store_id", null=True
     )
     category_id = models.ForeignKey(
-        Category, on_delete=models.CASCADE, verbose_name="category_id"
+        Category, on_delete=models.CASCADE, verbose_name="category_id", null=True
     )
     name = models.CharField(max_length=128)
     unit_price = models.IntegerField()
@@ -56,6 +56,6 @@ class Order(models.Model):
         null=True, default=None, verbose_name="delivery_status"
     )
     is_sajjang_accepted = models.BooleanField(
-        default=False, verbose_name="is_sajjang_accepted"
+        null=True, default=None, verbose_name="is_sajjang_accepted"
     )
     receipt = models.CharField(max_length=100, verbose_name="receipt")
