@@ -16,7 +16,7 @@
 
 #### 📅 기간 : 2023.09.24 - 2023.10.24
 
-#### 🔗 배포 주소 : default-del-4f995-20158617-bc493112b475.kr.lb.naverncp.com
+#### 🔗 배포 주소 : [default-del-4f995-20158617-bc493112b475.kr.lb.naverncp.com](http://default-del-4f995-20158617-bc493112b475.kr.lb.naverncp.com)
 
 ## 😎 Team
 
